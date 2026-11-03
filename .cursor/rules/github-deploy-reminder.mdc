@@ -22,4 +22,4 @@ alwaysApply: true
 
 ## 部署含义（本项目）
 
-「部署到 GitHub」= `git add` 相关源码 → `commit` → `push origin main`（仓库 https://github.com/RyderLok/sound-magic-tablet）
+「部署到 GitHub」= `git add` 相关源码 → `commit` → `push origin main`（仓库 https://github.com/RyderLok/PIKO）
