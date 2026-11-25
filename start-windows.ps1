@@ -42,11 +42,26 @@ Write-Host ""
 if (Test-TcpPort 8001) {
   Write-Host "[ok] Python already on :8001" -ForegroundColor Green
 } else {
-  $pyScript = Join-Path $Root "python-service\start-python.ps1"
-  if (-not (Test-Path $pyScript)) {
-    Write-Host "[!!] Missing $pyScript — run python-service\setup-python.ps1 first" -ForegroundColor Yellow
-  } else {
-    Start-ServiceWindow "Python :8001" (Join-Path $Root "python-service") ".\start-python.ps1"
+  $pyDir = Join-Path $Root "python-service"
+  $pyScript = Join-Path $pyDir "start-python.ps1"
+  $pyExe = Join-Path $pyDir ".venv\Scripts\python.exe"
+  $setupScript = Join-Path $pyDir "setup-python.ps1"
+  if (-not (Test-Path $pyExe)) {
+    Write-Host "[..] No Windows venv yet. Running setup-python.ps1 (first time, several minutes)..." -ForegroundColor Yellow
+    if (-not (Test-Path $setupScript)) {
+      Write-Host "[!!] Missing $setupScript" -ForegroundColor Yellow
+    } else {
+      & powershell.exe -ExecutionPolicy Bypass -File $setupScript
+      if (-not (Test-Path $pyExe)) {
+        Write-Host "[!!] Python venv still missing. Install Python 3.12, then run this script again." -ForegroundColor Yellow
+        Write-Host "    winget install -e --id Python.Python.3.12" -ForegroundColor Yellow
+      }
+    }
+  }
+  if ((Test-Path $pyScript) -and (Test-Path $pyExe)) {
+    Start-ServiceWindow "Python :8001" $pyDir ".\start-python.ps1"
+  } elseif (-not (Test-Path $pyScript)) {
+    Write-Host "[!!] Missing $pyScript" -ForegroundColor Yellow
   }
 }
 
@@ -58,7 +73,8 @@ if (Test-TcpPort 8765) {
 } else {
   $bridgeDir = Join-Path $Root "bridge"
   if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
-    Write-Host "[!!] node not in PATH — install Node.js LTS" -ForegroundColor Yellow
+    Write-Host "[!!] node not in PATH — install Node.js LTS, then run this script again." -ForegroundColor Yellow
+    Write-Host "    winget install -e --id OpenJS.NodeJS.LTS" -ForegroundColor Yellow
   } else {
     if (-not (Test-Path (Join-Path $bridgeDir "node_modules"))) {
       Write-Host "[..] npm install in bridge (first time)..."
@@ -89,7 +105,7 @@ if (Test-TcpPort 8000) {
 
 Write-Host ""
 Write-Host "Waiting for services..." -ForegroundColor DarkGray
-$deadline = (Get-Date).AddSeconds(25)
+$deadline = (Get-Date).AddSeconds(60)
 while ((Get-Date) -lt $deadline) {
   if ((Test-TcpPort 8000) -and (Test-TcpPort 8001)) { break }
   Start-Sleep -Seconds 1

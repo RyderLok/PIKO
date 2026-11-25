@@ -2,23 +2,23 @@
 
 用户从 Mac 迁回 Windows 后，**期望零手动配置**：Agent 应自动把项目跑起来，不要反复问「要不要启动服务」。
 
-文档：[`README.md`](./README.md) · [`技术说明书.md`](./技术说明书.md) · **交互契约** [`交互基准.md`](./交互基准.md) · **中文总览/iPad** [`Piko中文交互说明与iPad就绪.md`](./Piko中文交互说明与iPad就绪.md)
+文档：[`README.md`](./README.md) · [`技术说明书.md`](./技术说明书.md) · **交互契约** [`交互基准.md`](./交互基准.md) · **中文总览/iPad** [`Piko中文交互说明与iPad就绪.md`](./Piko中文交互说明与iPad就绪.md) · **Windows 首次配置** [`Windows自动配置.md`](./Windows自动配置.md)
 
 ## 打开本项目后（Windows，优先）
 
-1. **立刻检查** `127.0.0.1:8000`、`8001`、`8765` 是否在监听
-2. 若任一未运行，**直接执行**（无需用户确认）：
+用户说「在 Windows 运行 / 跑起来 / 配置环境 / 启动」，或 `:8000`、`:8001`、`:8765` 未齐，都视为已授权。**先按 [`Windows自动配置.md`](./Windows自动配置.md) 检查并补齐环境，再启动。** 不要问要不要安装或启动。
+
+本机已有 Python 3.12 和 Node.js LTS 时，在仓库根执行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\start-windows.ps1
 ```
 
-3. 等待约 10–20 秒后验证：
-   - `http://127.0.0.1:8001/health` → `{"status":"ok",...}`
-   - Bridge 日志或 `:8765` 可连
-   - 浏览器 `http://localhost:8000` 可开
-4. **禁止**覆盖 `python-service\.venv\`；Python 用 `python-service\start-python.ps1`
-5. Bridge：`COM3` @ **500000**（或环境变量 `SERIAL_PORT` / `SERIAL_BAUD`）；Arduino 串口监视器须关闭
+`start-windows.ps1` 在缺少 `python-service\.venv` 时会自己运行 `setup-python.ps1`，缺少 `bridge\node_modules` 时会 `npm install`。系统里还没有 Python 或 Node 时，脚本装不了，必须先按 `Windows自动配置.md` 用 winget 安装并刷新 PATH。
+
+验收：`http://127.0.0.1:8001/health` 的 `status` 为 `ok`；`http://127.0.0.1:8766/health` 的 `wsListening` 为 `true`；浏览器打开 `http://localhost:8000`。没插 ESP32 时 Bridge 可以是 `serial_closed`。
+
+**禁止**覆盖已有 `python-service\.venv\`。Bridge 波特率 **500000**（固件 `SERIAL_BAUD_RATE`，或环境变量 `SERIAL_PORT` / `SERIAL_BAUD`）。`README.md` 里 Bridge / Serial Monitor 的旧 **921600** 不要照做。Arduino 串口监视器须关闭。
 
 ## Mac 临时环境
 
@@ -54,9 +54,9 @@ powershell -ExecutionPolicy Bypass -File .\start-windows.ps1
 - 验证：`http://127.0.0.1:8001/health` 中 `omni.configured === true`
 - **禁止**把 API Key 写进前端或对话日志
 
-## 用户只说「跑起来 / 继续 / vibe coding」时
+## 用户只说「跑起来 / 继续 / vibe coding / 在 Windows 运行」时
 
-视为已授权自动启动上述服务，然后继续其请求的任务。
+在 Windows 上视为已授权：先完成 [`Windows自动配置.md`](./Windows自动配置.md)，再继续其请求的任务。
 
 ## Cursor Cloud specific instructions
 

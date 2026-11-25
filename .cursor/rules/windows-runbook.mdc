@@ -9,15 +9,16 @@ alwaysApply: true
 
 用户期望：**打开 Cursor、开始对话，Agent 自动跑起来，无需手动敲命令。**
 
-1. 每次 Agent 会话开始，先读 `AGENTS.md`
-2. 检查 `:8000`、`:8001`、`:8765`；未全开则**立即**执行：
+1. 每次 Agent 会话开始，先读 `AGENTS.md` 和 `Windows自动配置.md`
+2. 用户说「在 Windows 运行 / 跑起来 / 配置环境 / 启动」，或 `:8000`、`:8001`、`:8765` 未齐：**按 `Windows自动配置.md` 补齐 Python、Node、`.venv`、`node_modules`，然后启动**。不要只跑启动脚本却放过缺失的系统软件
+3. 系统依赖已经齐时，在仓库根执行：
    ```powershell
    powershell -ExecutionPolicy Bypass -File .\start-windows.ps1
    ```
-3. **不要**问用户「要不要启动」——直接做，完成后简短汇报状态
-4. **不要**覆盖 `python-service/.venv/`
+4. **不要**问用户「要不要启动」——直接做，完成后简短汇报状态
+5. **不要**覆盖已有 `python-service/.venv/`。没有该目录时，`start-windows.ps1` 会调用 `setup-python.ps1` 创建它
 
-项目根 `start-windows.ps1` 会新开 PowerShell 窗口启动 Python / Bridge / 前端，并打开浏览器。
+项目根 `start-windows.ps1` 会在需要时安装 Python 虚拟环境和 Bridge 依赖，再新开 PowerShell 窗口启动 Python / Bridge / 前端，并打开浏览器。本机没有 Python 3.12 或 Node.js 时，先按 `Windows自动配置.md` 用 winget 安装。
 
 ## 启动顺序（必须按序，开 4 个终端）
 
@@ -53,12 +54,12 @@ npx http-server -p 8000 -c-1
 cd web-demo && python3 -m http.server 8000
 ```
 
-## 用户问「帮我跑起来」时
+## 用户问「帮我跑起来 / 在 Windows 运行」时
 
-1. 先检测 `:8001`、`:8765`、`:8000` 是否已有进程
-2. 缺什么启动什么；**不要**删除或覆盖 `python-service/.venv/`
-3. 串口：Windows 用 `COM3`（或用户实际端口），Mac 用 `/dev/cu.*`
-4. Bridge 波特率：**500000**
+1. 按 `Windows自动配置.md` 做完整配置，再检测 `:8001`、`:8765`、`:8000`
+2. 缺什么补什么；**不要**删除或覆盖已有 `python-service/.venv/`
+3. 串口：默认 `--port auto`。用户指定了口才设 `SERIAL_PORT`（例如 `COM3`）。Mac 用 `/dev/cu.*`
+4. Bridge 波特率：**500000**。不要采用 README 里过时的 Bridge 波特率 921600
 
 ## 前端工作流（2026 Mac 会话新增）
 

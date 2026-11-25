@@ -33,7 +33,7 @@ Python FastAPI (librosa: waveform / spectrum / spectrogram → brush params)
 - Board: ESP32 Dev Module (ESP32-D0WD-V3)
 - Sample rate: 16000 Hz
 - Frame: 512 samples / JSON line
-- Serial: **921600 baud** (required for PCM streaming)
+- Serial: **500000 baud** (must match firmware `SERIAL_BAUD_RATE`; required for PCM streaming)
 
 ## Startup (required order)
 
@@ -43,7 +43,7 @@ Open `esp32/inmp441_bridge.ino` in Arduino IDE:
 
 - Board: **ESP32 Dev Module**
 - Upload speed: 921600 (or default)
-- Flash, then Serial Monitor @ **921600** — you should see:
+- Flash, then Serial Monitor @ **500000** — you should see:
 
 ```json
 {"status":"ready","pcm":true,"rate":16000}
@@ -54,15 +54,15 @@ Open `esp32/inmp441_bridge.ino` in Arduino IDE:
 ```bash
 cd bridge
 npm install
-node serial-bridge.js --port COM3 --baud 921600
+node serial-bridge.js --port auto --baud 500000
 ```
 
-Replace `COM3` with your port (Windows: Device Manager → Ports).
+On Windows, `auto` picks the USB serial device. Pin a port with `--port COM3` only when you know it (Device Manager → Ports).
 
 Optional flags:
 
 ```bash
-node serial-bridge.js --port COM3 --baud 921600 --ws 8765
+node serial-bridge.js --port COM3 --baud 500000 --ws 8765
 ```
 
 Bridge logs:
@@ -113,18 +113,18 @@ http://localhost:8000
 
 | 机制 | 作用 |
 |------|------|
-| **`start-windows.ps1`**（项目根） | 双击或 Agent 调用，一键开 Python + Bridge + 前端 + 浏览器 |
-| **`AGENTS.md`** | Cursor Agent 必读：迁回 Windows 后自动 bootstrap |
-| **`.cursor/hooks.json`** | 新 Agent 会话注入「请自动运行 start-windows.ps1」 |
-| **`.cursor/rules/windows-runbook.mdc`** | 启动顺序与禁止覆盖 `.venv` |
+| **[`Windows自动配置.md`](./Windows自动配置.md)** | Windows Agent 的配置步骤：装 Python / Node、创建 `.venv`、启动并验收 |
+| **`start-windows.ps1`**（项目根） | 没有 `.venv` 时先跑 `setup-python.ps1`，再开 Python + Bridge + 前端 + 浏览器 |
+| **`AGENTS.md`** | Cursor Agent 必读：在 Windows 上先按 `Windows自动配置.md` 做 |
+| **`.cursor/rules/windows-runbook.mdc`** | 启动顺序与禁止覆盖已有 `.venv` |
 
-**迁回 Windows 后你要做的：**
+**在 Windows 上：**
 
-1. 整份文件夹拷到 Windows（含 `.cursor/`、`AGENTS.md`、`start-windows.ps1`）
+1. `git clone` 本仓库，或把项目文件夹拷过去（含 `.cursor/`、`AGENTS.md`、`Windows自动配置.md`、`start-windows.ps1`）
 2. 用 Cursor **Open Folder** 打开项目根目录
-3. 新开 Agent 聊天 —— Agent 应自动跑 `start-windows.ps1`；若未自动，说「跑起来」即可
+3. 对新对话说「在 Windows 上运行」。Agent 按 `Windows自动配置.md` 安装缺失的 Python 3.12、Node.js LTS 和虚拟环境，然后启动
 
-也可手动双击 **`start-windows.ps1`**（无需 Cursor）。
+本机已经装好 Python 和 Node 时，也可以直接运行 **`start-windows.ps1`**。第一次会创建 `python-service\.venv`，需要几分钟。
 
 ## Mode B — sound → visual structure
 
@@ -223,7 +223,7 @@ Health: `http://127.0.0.1:8001/health` → `omni.configured`
 | Issue | Check |
 |-------|--------|
 | `ESP32 offline` in browser | Bridge running? Port 8765 free? |
-| No serial data | Correct COM port? Baud **921600**? USB cable supports data |
+| No serial data | Correct COM port? Baud **500000**? USB cable supports data |
 | Flat waveform | INMP441 wiring, L/R → GND, 3.3V not 5V |
 | Permission error (serial) | Close Arduino Serial Monitor before starting bridge |
 
